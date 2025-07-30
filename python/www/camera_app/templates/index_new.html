@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>{{ title }}</title>
+
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="stylesheet" href="/static/bootstrap.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+    <script src="/static/webrtc.js"></script>
+    <script src="/static/rest.js"></script>
+    <script src="/static/debounce.js"></script>
+    <script src="/static/jquery-3.6.3.min.js"></script>
+    <script src="/static/bootstrap.bundle.min.js"></script>
+
+    <style>
+      .plus-layout {
+        display: grid;
+        grid-template-areas:
+          ".    top    ."
+          "left center right"
+          ".   bottom  .";
+        grid-template-columns: 1fr auto 1fr;
+        grid-template-rows: auto auto auto;
+        gap: 1rem;
+        justify-items: center;
+        align-items: center;
+        margin-top: 2rem;
+      }
+
+      .video-player {
+        width: 320px;
+        height: 240px;
+        border: 2px solid #007bff;
+      }
+
+      .video-wrapper {
+        text-align: center;
+      }
+
+      .video-label {
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+        display: block;
+      }
+
+      .center-image {
+        width: 300px;
+        height: 300px;
+        object-fit: contain;
+        border: 2px dashed #ccc;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg bg-primary">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">{{ title }}</a>
+      </div>
+    </nav>
+
+    <!-- Plus Layout -->
+    <div class="container plus-layout">
+      <!-- Top -->
+      <div class="video-wrapper" style="grid-area: top;">
+        <span class="video-label">{{ labels[2] }}</span>
+        <video id="video-{{ output_stream[2] }}" class="video-player" autoplay controls playsinline muted></video>
+      </div>
+
+      <!-- Left -->
+      <div class="video-wrapper" style="grid-area: left;">
+        <span class="video-label">{{ labels[0] }}</span>
+        <video id="video-{{ output_stream[0] }}" class="video-player" autoplay controls playsinline muted></video>
+      </div>
+
+      <!-- Center (Static Image) -->
+      <div style="grid-area: center;">
+        <img src="/static/center_image.jpg" alt="Center" class="center-image">
+      </div>
+
+      <!-- Right -->
+      <div class="video-wrapper" style="grid-area: right;">
+        <span class="video-label">{{ labels[1] }}</span>
+        <video id="video-{{ output_stream[1] }}" class="video-player" autoplay controls playsinline muted></video>
+      </div>
+
+      <!-- Bottom -->
+      <div class="video-wrapper" style="grid-area: bottom;">
+        <span class="video-label">{{ labels[3] }}</span>
+        <video id="video-{{ output_stream[3] }}" class="video-player" autoplay controls playsinline muted></video>
+      </div>
+    </div>
+
+    <!-- Playback Scripts -->
+    <script type="text/javascript">
+      window.onload = function () {
+        const ports = {{ output_stream | tojson }};
+        const labels = {{ labels | tojson }};
+
+        ports.forEach((port) => {
+          const videoId = `video-${port}`;
+          const url = getWebsocketURL('output', port);
+          const video = document.getElementById(videoId);
+          playStream(url, video);
+        });
+      };
+    </script>
+  </body>
+</html>
