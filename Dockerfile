@@ -27,7 +27,7 @@
 #     https://github.com/dusty-nv/jetson-containers#docker-default-runtime
 #
 
-ARG BASE_IMAGE=nvcr.io/nvidia/l4t-pytorch:r35.2.1-pth2.0-py3
+ARG BASE_IMAGE=dustynv/l4t-pytorch:r36.4.0
 #ARG BASE_IMAGE=nvcr.io/nvidia/l4t-base:r35.2.1
 # ARG BASE_IMAGE=nvcr.io/nvidia/l4t-tensorrt:r8.6.2-devel
 # ARG BASE_IMAGE=quay.io/rapyuta/oks_perception:devel

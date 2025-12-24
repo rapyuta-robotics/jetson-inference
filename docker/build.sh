@@ -17,7 +17,11 @@ source docker/tag.sh
 
 if [ -z $BASE_IMAGE ]; then
 	if [ $ARCH = "aarch64" ]; then
-		if [ $L4T_VERSION = "35.4.1" ]; then
+		if [ $L4T_VERSION = "36.4.0" ]; then
+			BASE_IMAGE="dustynv/l4t-pytorch:r36.4.0"
+		elif [ $L4T_VERSION = "36.2.0" ]; then
+			BASE_IMAGE="dustynv/l4t-pytorch:r36.2.0"
+		elif [ $L4T_VERSION = "35.4.1" ]; then
 			BASE_IMAGE="dustynv/l4t-pytorch:r35.4.1"
 		elif [ $L4T_VERSION = "35.3.1" ]; then
 			BASE_IMAGE="dustynv/l4t-pytorch:r35.3.1"
