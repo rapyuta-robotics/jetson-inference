@@ -56,6 +56,7 @@ RUN apt-get update && \
         libgstreamer-plugins-base1.0-dev \
         libgstreamer-plugins-good1.0-dev \
         libgstreamer-plugins-bad1.0-dev \
+        gstreamer1.0-nice \
         python3-distutils \
         make \
         build-essential \
