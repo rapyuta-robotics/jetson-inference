@@ -27,7 +27,7 @@
 #     https://github.com/dusty-nv/jetson-containers#docker-default-runtime
 #
 
-ARG BASE_IMAGE=nvcr.io/nvidia/l4t-pytorch:r35.2.1-pth2.0-py3
+ARG BASE_IMAGE=dustynv/l4t-pytorch:r36.4.0
 #ARG BASE_IMAGE=nvcr.io/nvidia/l4t-base:r35.2.1
 # ARG BASE_IMAGE=nvcr.io/nvidia/l4t-tensorrt:r8.6.2-devel
 # ARG BASE_IMAGE=quay.io/rapyuta/oks_perception:devel
@@ -56,6 +56,7 @@ RUN apt-get update && \
         libgstreamer-plugins-base1.0-dev \
         libgstreamer-plugins-good1.0-dev \
         libgstreamer-plugins-bad1.0-dev \
+        gstreamer1.0-nice \
         python3-distutils \
         make \
         build-essential \
@@ -87,8 +88,8 @@ RUN pip3 install --no-cache-dir --verbose --upgrade Cython
 #
 # copy source
 #
-COPY jetson-utils utils
-RUN apt install libnvinfer-dev -y
+COPY utils utils
+# RUN apt install libnvinfer-dev -y
 RUN apt install libsoup2.4-dev -y
 RUN apt install libjson-glib-dev -y
 RUN apt install libglew-dev -y
@@ -108,10 +109,9 @@ RUN cd utils &&   mkdir build && \
 
 ##############################
 WORKDIR /jetson-inference/python/www/
-COPY /jetson-inference/python/www/camera_app /jetson-inference/python/www/camera_app
-RUN pip3 install -r /jetson-inference/python/www/camera_app/requirements.txt
+COPY python/www/camera_app /jetson-inference/python/www/camera_app
+RUN pip3 install --ignore-installed --extra-index-url https://pypi.org/simple -r /jetson-inference/python/www/camera_app/requirements.txt
 ENV SSL_CERT=/jetson-inference/data/cert.pem
 ENV SSL_KEY=/jetson-inference/data/key.pem
 
 CMD mkdir /jetson-inference/data && cd /jetson-inference/data && openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -sha256 -days 365 -nodes -subj '/CN=localhost' && python3 /jetson-inference/python/www/camera_app/app_new.py --headless
-nu/libgomp.so.1:/lib/aarch64-linux-gnu/libGLdispatch.so.0

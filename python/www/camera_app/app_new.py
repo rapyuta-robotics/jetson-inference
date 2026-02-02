@@ -24,6 +24,7 @@
 import os
 import flask
 import argparse
+import time
 
 from stream import Stream
 from utils import rest_property
@@ -84,6 +85,7 @@ def index():
 # start stream thread
 for stream in streams:
     stream.start()  # or whatever you need to call
+    time.sleep(2)
 
 # check if HTTPS/SSL requested
 ssl_context = None
