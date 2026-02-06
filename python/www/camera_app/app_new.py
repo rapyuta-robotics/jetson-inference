@@ -39,6 +39,8 @@ parser.add_argument("--ssl-cert", default=os.getenv('SSL_CERT'), type=str, help=
 parser.add_argument("--title", default='Oks camera image viewer', type=str, help="the title of the webpage as shown in the browser")
 parser.add_argument("--input", default='webrtc://@:8554/input', type=str, help="input camera stream or video file")
 parser.add_argument("--output", default='webrtc://@:8554/output', type=str, help="WebRTC output stream to serve from --input")
+parser.add_argument("--use-udp", default=True, type=lambda x: (str(x).lower() in ['true', '1', 'yes']), help="use UDP streams from oks_perception instead of CSI cameras (default: True, use --use-udp=false to disable)")
+parser.add_argument("--udp-base-port", default=5000, type=int, help="base UDP port for camera streams (default: 5000)")
 
 args = parser.parse_known_args()[0]
     
@@ -59,19 +61,60 @@ args_list = [
     "--input-height=480",
     "--input-flip=rotate-180"
 ]
-ports = [0, 3, 2, 1]
-labels = ["left", "right", "front", "back"]
+
+# Camera configuration
+if args.use_udp:
+    # Use UDP streams from oks_perception
+    print("=== Using UDP streams from oks_perception ===")
+    print("Make sure oks_perception is running with UDP streaming enabled:")
+    print("  ./scripts/start_local_stream.sh")
+    print("=" * 50)
+    
+    # UDP ports: 5000-5003 for cameras LEFT, REAR, FRONT, RIGHT
+    ports = [0, 1, 2, 3]  # UDP port offsets
+    labels = ["left", "rear", "front", "right"]
+    input_prefix = f"udp://@:{args.udp_base_port}"  # Base UDP source
+else:
+    # Use CSI cameras directly (original behavior)
+    print("=== Using CSI cameras directly ===")
+    print("Note: This will not work if oks_perception is running")
+    print("=" * 50)
+    
+    ports = [0, 3, 2, 1]  # CSI camera IDs
+    labels = ["left", "right", "front", "back"]
+    input_prefix = "csi://"
 
 streams = []
 webrtc_ports = []
 
 for idx, port in enumerate(ports):
-    input_arg = f"--input=csi://{port}"
+    if args.use_udp:
+        # UDP stream with GStreamer pipeline for RTP/JPEG
+        # camera_manager sends: videorate -> nvjpegenc -> rtpjpegpay -> udpsink
+        # We receive with: udpsrc -> rtpjpegdepay -> nvjpegdec
+        input_arg = f"--input-codec=h264"  # Will be overridden by pipeline
+        gst_pipeline = (
+            f"udpsrc port={args.udp_base_port + port} ! "
+            "application/x-rtp,encoding-name=JPEG,payload=26 ! "
+            "rtpjpegdepay ! "
+            "jpegdec ! "
+            "videoconvert ! "
+            "video/x-raw,format=RGB ! "
+            "appsink"
+        )
+        # Use GStreamer pipeline directly
+        input_arg = f"--input=gst://{gst_pipeline}"
+    else:
+        # CSI camera: csi://0, csi://3, etc.
+        input_arg = f"--input=csi://{port}"
+    
     webrtc_ports.append(idx + 8554)
     output_arg = f"--output=webrtc://@:{8554 + idx}/output"
     
     this_args_list = [input_arg, output_arg]
     parsed_args = parser2.parse_args(this_args_list)
+    
+    print(f"Stream {idx}: {input_arg} -> {output_arg}")
     
     stream = Stream(parsed_args, args_list)
     streams.append(stream)
@@ -83,9 +126,14 @@ def index():
 
     
 # start stream thread
-for stream in streams:
-    stream.start()  # or whatever you need to call
+print("\nStarting camera streams...")
+for idx, stream in enumerate(streams):
+    print(f"  Starting stream {idx}: {labels[idx]}")
+    stream.start()
     time.sleep(2)
+
+print("\nAll streams started successfully!")
+print(f"Web interface available at: http://{args.host}:{args.port}")
 
 # check if HTTPS/SSL requested
 ssl_context = None
