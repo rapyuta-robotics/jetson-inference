@@ -64,6 +64,8 @@ args_list = [
 
 # Camera configuration
 if args.use_udp:
+    # Add MJPEG codec for UDP/RTP streams (camera_manager sends RTP/JPEG)
+    args_list.append("--input-codec=mjpeg")
     # Use UDP streams from oks_perception
     print("=== Using UDP streams from oks_perception ===")
     print("Make sure oks_perception is running with UDP streaming enabled:")
@@ -93,18 +95,14 @@ for idx, port in enumerate(ports):
         # camera_manager sends RTP/JPEG to UDP ports
         # jetson-utils can receive with rtp:// protocol
         input_arg = f"--input=rtp://0.0.0.0:{args.udp_base_port + port}"
-        codec_arg = "--input-codec=mjpeg"  # Specify MJPEG codec for RTP/JPEG streams
     else:
         # CSI camera: csi://0, csi://3, etc.
         input_arg = f"--input=csi://{port}"
-        codec_arg = None
     
     webrtc_ports.append(idx + 8554)
     output_arg = f"--output=webrtc://@:{8554 + idx}/output"
     
     this_args_list = [input_arg, output_arg]
-    if codec_arg:
-        this_args_list.insert(1, codec_arg)  # Add codec arg between input and output
     parsed_args = parser2.parse_args(this_args_list)
     
     print(f"Stream {idx}: {input_arg} -> {output_arg}")
