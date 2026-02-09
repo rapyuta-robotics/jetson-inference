@@ -89,21 +89,10 @@ webrtc_ports = []
 
 for idx, port in enumerate(ports):
     if args.use_udp:
-        # UDP stream with GStreamer pipeline for RTP/JPEG
-        # camera_manager sends: videorate -> nvjpegenc -> rtpjpegpay -> udpsink
-        # We receive with: udpsrc -> rtpjpegdepay -> nvjpegdec
-        input_arg = f"--input-codec=h264"  # Will be overridden by pipeline
-        gst_pipeline = (
-            f"udpsrc port={args.udp_base_port + port} ! "
-            "application/x-rtp,encoding-name=JPEG,payload=26 ! "
-            "rtpjpegdepay ! "
-            "jpegdec ! "
-            "videoconvert ! "
-            "video/x-raw,format=RGB ! "
-            "appsink"
-        )
-        # Use GStreamer pipeline directly
-        input_arg = f"--input=gst://{gst_pipeline}"
+        # Use RTP protocol which is supported by jetson-utils
+        # camera_manager sends RTP/JPEG to UDP ports
+        # jetson-utils can receive with rtp:// protocol
+        input_arg = f"--input=rtp://0.0.0.0:{args.udp_base_port + port}"
     else:
         # CSI camera: csi://0, csi://3, etc.
         input_arg = f"--input=csi://{port}"
