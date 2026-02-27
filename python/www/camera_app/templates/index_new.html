@@ -60,6 +60,9 @@
     <nav class="navbar navbar-expand-lg bg-primary">
       <div class="container-fluid">
         <a class="navbar-brand" href="#">{{ title }}</a>
+        <button id="btn-toggle-guideline" class="btn btn-light btn-sm ms-auto" onclick="toggleGuideline()">
+          <i class="fa fa-eye"></i> Hide Guideline
+        </button>
       </div>
     </nav>
 
@@ -68,13 +71,21 @@
       <!-- Top -->
       <div class="video-wrapper" style="grid-area: top;">
         <span class="video-label">{{ labels[2] }}</span>
-        <video id="video-{{ output_stream[2] }}" class="video-player" autoplay controls playsinline muted></video>
+        <div style="position: relative; display: inline-block;">
+          <video id="video-{{ output_stream[2] }}" class="video-player" autoplay controls playsinline muted></video>
+          <!-- Visual guideline overlay (transparent PNG, same aspect ratio as video) -->
+          <img src="/static/visual_guideline.png" alt="Visual Guideline" class="guideline-overlay" style="position: absolute; left: 0; top: 0; width: 320px; height: 240px; pointer-events: none;">
+        </div>
       </div>
 
       <!-- Left -->
       <div class="video-wrapper" style="grid-area: left;">
         <span class="video-label">{{ labels[0] }}</span>
-        <video id="video-{{ output_stream[0] }}" class="video-player" autoplay controls playsinline muted></video>
+        <div style="position: relative; display: inline-block;">
+          <video id="video-{{ output_stream[0] }}" class="video-player" autoplay controls playsinline muted></video>
+          <!-- Visual guideline overlay (transparent PNG, same aspect ratio as video) -->
+          <img src="/static/visual_guideline.png" alt="Visual Guideline" class="guideline-overlay" style="position: absolute; left: 0; top: 0; width: 320px; height: 240px; pointer-events: none;">
+        </div>
       </div>
 
       <!-- Center (Static Image) -->
@@ -85,22 +96,41 @@
       <!-- Right -->
       <div class="video-wrapper" style="grid-area: right;">
         <span class="video-label">{{ labels[1] }}</span>
-        <video id="video-{{ output_stream[1] }}" class="video-player" autoplay controls playsinline muted></video>
+        <div style="position: relative; display: inline-block;">
+          <video id="video-{{ output_stream[1] }}" class="video-player" autoplay controls playsinline muted></video>
+          <!-- Visual guideline overlay (transparent PNG, same aspect ratio as video) -->
+          <img src="/static/visual_guideline.png" alt="Visual Guideline" class="guideline-overlay" style="position: absolute; left: 0; top: 0; width: 320px; height: 240px; pointer-events: none;">
+        </div>
       </div>
 
       <!-- Bottom -->
       <div class="video-wrapper" style="grid-area: bottom;">
         <span class="video-label">{{ labels[3] }}</span>
-        <video id="video-{{ output_stream[3] }}" class="video-player" autoplay controls playsinline muted></video>
+        <div style="position: relative; display: inline-block;">
+          <video id="video-{{ output_stream[3] }}" class="video-player" autoplay controls playsinline muted></video>
+          <!-- Visual guideline overlay (transparent PNG, same aspect ratio as video) -->
+          <img src="/static/visual_guideline.png" alt="Visual Guideline" class="guideline-overlay" style="position: absolute; left: 0; top: 0; width: 320px; height: 240px; pointer-events: none;">
+        </div>
       </div>
     </div>
 
     <!-- Playback Scripts -->
     <script type="text/javascript">
+      // Toggle visual guideline overlay on all videos
+      function toggleGuideline() {
+        const overlays = document.querySelectorAll('.guideline-overlay');
+        const btn = document.getElementById('btn-toggle-guideline');
+        const isVisible = overlays[0] && overlays[0].style.display !== 'none';
+        overlays.forEach((img) => {
+          img.style.display = isVisible ? 'none' : 'block';
+        });
+        btn.innerHTML = isVisible
+          ? '<i class="fa fa-eye-slash"></i> Show Guideline'
+          : '<i class="fa fa-eye"></i> Hide Guideline';
+      }
+
       window.onload = function () {
         const ports = {{ output_stream | tojson }};
-        const labels = {{ labels | tojson }};
-
         ports.forEach((port) => {
           const videoId = `video-${port}`;
           const url = getWebsocketURL('output', port);
